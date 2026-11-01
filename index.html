@@ -1,0 +1,622 @@
+<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Các Con Nợ Tiền - VIP Pro Max</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darker: '#090d16',
+                        carddark: '#111827',
+                        goldglow: '#fbbf24'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%);
+        }
+        .neon-glow {
+            box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-amber-500 selection:text-slate-950 pb-24">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        
+        <!-- Header Siêu VIP -->
+        <header class="glass-panel rounded-3xl p-6 sm:p-8 mb-8 shadow-2xl relative overflow-hidden flex flex-col lg:flex-row justify-between items-center gap-6 border border-amber-500/20">
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex items-center gap-5 relative z-10">
+                <div class="w-16 h-16 rounded-2xl gold-gradient flex items-center justify-center text-slate-950 text-3xl font-black shadow-lg neon-glow animate-pulse">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500 bg-clip-text text-transparent">
+                            CÁC CON NỢ TIỀN
+                        </h1>
+                        <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-black border border-amber-500/30 uppercase tracking-widest">VIP PRO MAX</span>
+                    </div>
+                    <p class="text-sm text-slate-400 mt-1 font-medium">Hệ thống theo dõi dư nợ, tính lãi suất tự động & quản lý đẳng cấp.</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 relative z-10 w-full lg:w-auto justify-end">
+                <button onclick="openCalcModal()" class="px-4 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 transition shadow-md flex items-center gap-2 text-sm font-bold text-indigo-400 hover:text-indigo-300">
+                    <i class="fa-solid fa-calculator"></i> Máy Tính Lãi
+                </button>
+                <button onclick="exportDataJSON()" class="px-4 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 transition shadow-md flex items-center gap-2 text-sm font-bold text-emerald-400 hover:text-emerald-300">
+                    <i class="fa-solid fa-file-arrow-down"></i> Sao Lưu JSON
+                </button>
+                <label class="px-4 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 transition shadow-md flex items-center gap-2 text-sm font-bold text-purple-400 hover:text-purple-300 cursor-pointer">
+                    <i class="fa-solid fa-file-arrow-up"></i> Khôi Phục
+                    <input type="file" id="import-file-input" onchange="importDataJSON(event)" accept=".json" class="hidden">
+                </label>
+                <button onclick="openAddModal()" class="px-6 py-3 rounded-xl gold-gradient hover:opacity-90 text-slate-950 font-black shadow-xl neon-glow transition flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-user-plus text-base"></i> Thêm Con Nợ
+                </button>
+            </div>
+        </header>
+
+        <!-- Thống kê tổng quan -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="glass-panel rounded-2xl p-5 border-l-4 border-amber-500 shadow-lg relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Tổng Tiền Gốc</p>
+                        <h3 id="stat-total-principal" class="text-2xl sm:text-3xl font-black text-amber-400 mt-2">0</h3>
+                    </div>
+                    <div class="p-3 rounded-xl bg-amber-500/10 text-amber-400 text-xl"><i class="fa-solid fa-vault"></i></div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-5 border-l-4 border-indigo-500 shadow-lg relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Lãi Dự Tính Tháng</p>
+                        <h3 id="stat-total-interest" class="text-2xl sm:text-3xl font-black text-indigo-400 mt-2">0</h3>
+                    </div>
+                    <div class="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 text-xl"><i class="fa-solid fa-chart-line"></i></div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-5 border-l-4 border-emerald-500 shadow-lg relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Tổng Cả Gốc & Lãi</p>
+                        <h3 id="stat-total-all" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-2">0</h3>
+                    </div>
+                    <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 text-xl"><i class="fa-solid fa-sack-dollar"></i></div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-5 border-l-4 border-purple-500 shadow-lg relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Tổng Số Con Nợ</p>
+                        <h3 id="stat-total-count" class="text-2xl sm:text-3xl font-black text-purple-400 mt-2">0</h3>
+                    </div>
+                    <div class="p-3 rounded-xl bg-purple-500/10 text-purple-400 text-xl"><i class="fa-solid fa-users"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bộ lọc và Tìm kiếm -->
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 mb-8 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
+            <div class="relative w-full md:w-96">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="search-input" oninput="filterDebtors()" placeholder="Tìm kiếm tên con nợ..." class="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700 text-sm font-medium focus:outline-none focus:border-amber-500 transition">
+            </div>
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end overflow-x-auto pb-1 md:pb-0">
+                <button onclick="setStatusFilter('all')" id="filter-btn-all" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition shadow-md">Tất cả</button>
+                <button onclick="setStatusFilter('active')" id="filter-btn-active" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900/80 text-slate-300 hover:bg-slate-800 border border-slate-700 transition">Đang nợ</button>
+                <button onclick="setStatusFilter('settled')" id="filter-btn-settled" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900/80 text-slate-300 hover:bg-slate-800 border border-slate-700 transition">Đã tất toán</button>
+            </div>
+        </div>
+
+        <!-- Danh sách con nợ (Grid cards siêu đẹp) -->
+        <div id="debtors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Render dinamic tại đây -->
+        </div>
+
+    </div>
+
+    <!-- Modal: Thêm con nợ -->
+    <div id="add-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-amber-500/30">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+                <h3 class="text-xl font-black flex items-center gap-3 text-amber-400">
+                    <i class="fa-solid fa-user-plus"></i> Thêm Con Nợ VIP Mới
+                </h3>
+                <button onclick="closeAddModal()" class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="add-form" onsubmit="handleAddDebtor(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Tên Con Nợ</label>
+                    <input type="text" id="input-name" required placeholder="Ví dụ: Nguyễn Văn A..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium focus:outline-none focus:border-amber-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Số Tiền Gốc (Đơn vị tùy ý)</label>
+                    <input type="number" step="0.001" id="input-amount" required placeholder="Ví dụ: 1500..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium focus:outline-none focus:border-amber-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Lãi Suất Hàng Tháng (%)</label>
+                    <input type="number" step="0.1" id="input-interest" value="3.0" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium focus:outline-none focus:border-amber-500 transition">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeAddModal()" class="flex-1 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 font-bold text-sm text-slate-300 transition border border-slate-700">Hủy</button>
+                    <button type="submit" class="flex-1 py-3.5 rounded-xl gold-gradient hover:opacity-90 text-slate-950 font-black text-sm shadow-lg neon-glow transition">Thêm Ngay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Giao dịch / Trừ nợ -->
+    <div id="payment-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-emerald-500/30">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+                <h3 class="text-xl font-black flex items-center gap-3 text-emerald-400">
+                    <i class="fa-solid fa-hand-holding-dollar"></i> Quản Lý Dư Nợ & Giao Dịch
+                </h3>
+                <button onclick="closePaymentModal()" class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="payment-form" onsubmit="handlePaymentSubmit(event)" class="space-y-4">
+                <input type="hidden" id="pay-debtor-id">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Đang thao tác cho con nợ:</p>
+                    <h4 id="pay-debtor-name" class="text-lg font-black text-amber-400 mt-0.5"></h4>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Loại Giao Dịch</label>
+                    <select id="pay-type" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium focus:outline-none focus:border-emerald-500 transition">
+                        <option value="principal">Trừ tiền gốc (Trả bớt nợ)</option>
+                        <option value="add">Cộng thêm khoản nợ mới</option>
+                        <option value="interest">Thanh toán tiền lãi</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Số Tiền Giao Dịch</label>
+                    <input type="number" step="0.001" id="pay-amount" required placeholder="Nhập số tiền..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Ghi Chú / Nội Dung</label>
+                    <input type="text" id="pay-note" placeholder="Ví dụ: Chuyển khoản trả bớt..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closePaymentModal()" class="flex-1 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 font-bold text-sm text-slate-300 transition border border-slate-700">Hủy</button>
+                    <button type="submit" class="flex-1 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-600/30 transition">Xác Nhận</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Máy tính lãi suất -->
+    <div id="calc-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-indigo-500/30">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+                <h3 class="text-xl font-black flex items-center gap-3 text-indigo-400">
+                    <i class="fa-solid fa-calculator"></i> Máy Tính Nhanh Lãi Suất
+                </h3>
+                <button onclick="closeCalcModal()" class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Số Tiền Gốc</label>
+                    <input type="number" id="calc-p" oninput="calculateInterestQuick()" placeholder="Nhập gốc..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Lãi Suất Tháng (%)</label>
+                    <input type="number" id="calc-r" value="3.0" oninput="calculateInterestQuick()" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Số Tháng Vay</label>
+                    <input type="number" id="calc-m" value="1" oninput="calculateInterestQuick()" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div class="p-4 rounded-2xl bg-indigo-950/50 border border-indigo-500/30 text-center">
+                    <p class="text-xs font-bold uppercase tracking-wider text-indigo-300">Tiền Lãi Phát Sinh:</p>
+                    <h4 id="calc-result" class="text-2xl font-black text-indigo-400 mt-1">0</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Xử Lý Toàn Bộ -->
+    <script>
+        const DB_NAME = 'VIPDebtManagerDB_v2';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'debtors';
+        let db = null;
+        let debtorsCache = [];
+        let currentStatusFilter = 'all';
+
+        const INITIAL_DEBTORS = [
+            { id: 1, name: 'tài linh', principal: 330, interestRate: 3.0, history: [] },
+            { id: 2, name: 'tai', principal: 7000, interestRate: 3.0, history: [] },
+            { id: 3, name: 'toàn', principal: 2000, interestRate: 3.0, history: [] },
+            { id: 4, name: 'mom', principal: 7000, interestRate: 3.0, history: [{type: 'add', amount: 3000, note: 'Gốc phần 1'}, {type: 'add', amount: 4000, note: 'Gốc phần 2'}] },
+            { id: 5, name: 'thành', principal: 380, interestRate: 3.0, history: [] },
+            { id: 6, name: 'hào', principal: 218, interestRate: 3.0, history: [{type: 'add', amount: 133, note: 'Phần 1'}, {type: 'add', amount: 85, note: 'Phần 2'}] },
+            { id: 7, name: 'biền', principal: 290, interestRate: 3.0, history: [{type: 'add', amount: 140, note: 'Phần 1'}, {type: 'add', amount: 150, note: 'Phần 2'}] },
+            { id: 8, name: 'phương', principal: 81, interestRate: 3.0, history: [] },
+            { id: 9, name: 'toàn', principal: 143, interestRate: 3.0, history: [] },
+            { id: 10, name: 'đạt', principal: 125, interestRate: 3.0, history: [] },
+            { id: 11, name: 'nhật', principal: 180, interestRate: 3.0, history: [] },
+            { id: 12, name: 'quân', principal: 5135, interestRate: 3.0, history: [] },
+            { id: 13, name: 'dũng', principal: 1143, interestRate: 3.0, history: [] }
+        ];
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = e => reject(e.target.error);
+                request.onsuccess = e => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onupgradeneeded = e => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains(STORE_NAME)) {
+                        database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+            });
+        }
+
+        async function loadDebtors() {
+            if (!db) await initDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([STORE_NAME], 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.getAll();
+
+                req.onsuccess = async () => {
+                    let results = req.result;
+                    if (!results || results.length === 0) {
+                        await seedData();
+                        loadDebtors().then(resolve).catch(reject);
+                    } else {
+                        debtorsCache = results;
+                        renderDebtors();
+                        updateStats();
+                        resolve(results);
+                    }
+                };
+                req.onerror = e => reject(e.target.error);
+            });
+        }
+
+        async function seedData() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([STORE_NAME], 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                INITIAL_DEBTORS.forEach(d => store.put(d));
+                tx.oncomplete = () => {
+                    showToast("Đã khởi tạo danh sách con nợ VIP thành công!", "success");
+                    resolve();
+                };
+                tx.onerror = e => reject(e.target.error);
+            });
+        }
+
+        function renderDebtors() {
+            const grid = document.getElementById('debtors-grid');
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            
+            let filtered = debtorsCache.filter(d => {
+                const matchName = d.name.toLowerCase().includes(searchVal);
+                if (currentStatusFilter === 'active') return matchName && d.principal > 0;
+                if (currentStatusFilter === 'settled') return matchName && d.principal <= 0;
+                return matchName;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 text-center glass-panel rounded-3xl">
+                        <i class="fa-solid fa-folder-open text-5xl text-slate-600 mb-3"></i>
+                        <p class="text-slate-400 font-bold text-base">Không tìm thấy con nợ nào phù hợp!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(d => {
+                const interestAmt = (d.principal * (d.interestRate || 3.0)) / 100;
+                const totalAmt = d.principal + interestAmt;
+                const isSettled = d.principal <= 0;
+
+                return `
+                    <div class="glass-panel rounded-3xl p-6 shadow-xl border relative overflow-hidden group hover:border-amber-500/50 transition-all duration-300 ${isSettled ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-slate-800'}">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl ${isSettled ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'gold-gradient text-slate-950'} flex items-center justify-center font-black text-lg shadow-md">
+                                    ${d.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-black tracking-tight text-white capitalize">${d.name}</h3>
+                                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${isSettled ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">
+                                        ${isSettled ? 'Đã tất toán' : 'VIP Đang Nợ'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="openPaymentModal(${d.id})" class="w-9 h-9 rounded-xl bg-slate-900/80 hover:bg-emerald-600 hover:text-white text-emerald-400 flex items-center justify-center transition border border-slate-700" title="Giao dịch / Trừ nợ">
+                                    <i class="fa-solid fa-calculator text-xs"></i>
+                                </button>
+                                <button onclick="deleteDebtor(${d.id})" class="w-9 h-9 rounded-xl bg-slate-900/80 hover:bg-rose-600 hover:text-white text-rose-400 flex items-center justify-center transition border border-slate-700" title="Xóa con nợ">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2.5 my-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-800/80">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-400 font-medium">Tiền Gốc:</span>
+                                <span class="font-extrabold text-amber-400">${d.principal.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-400 font-medium">Lãi suất (${d.interestRate || 3}%/tháng):</span>
+                                <span class="font-bold text-indigo-400">+${interestAmt.toLocaleString()}</span>
+                            </div>
+                            <div class="pt-2 border-t border-slate-800 flex justify-between text-sm">
+                                <span class="text-slate-300 font-bold">Tổng cộng:</span>
+                                <span class="font-black text-emerald-400 text-base">${totalAmt.toLocaleString()}</span>
+                            </div>
+                        </div>
+
+                        ${d.history && d.history.length > 0 ? `
+                            <div class="text-xs text-slate-400 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800">
+                                <p class="font-bold text-slate-300 mb-1"><i class="fa-solid fa-clock-rotate-left mr-1 text-amber-400"></i> Giao dịch gần nhất:</p>
+                                <p class="truncate text-slate-400">• ${d.history[d.history.length - 1].note}: <span class="text-amber-400 font-bold">${d.history[d.history.length - 1].amount}</span></p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            let totalP = 0;
+            let totalI = 0;
+            debtorsCache.forEach(d => {
+                totalP += d.principal;
+                totalI += (d.principal * (d.interestRate || 3.0)) / 100;
+            });
+            document.getElementById('stat-total-principal').innerText = totalP.toLocaleString();
+            document.getElementById('stat-total-interest').innerText = totalI.toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('stat-total-all').innerText = (totalP + totalI).toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('stat-total-count').innerText = debtorsCache.length;
+        }
+
+        async function deleteDebtor(id) {
+            if (!confirm("Bạn có chắc chắn muốn xóa con nợ này khỏi hệ thống?")) return;
+            if (!db) await initDB();
+            const tx = db.transaction([STORE_NAME], 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.delete(Number(id));
+            tx.oncomplete = () => {
+                showToast("Đã xóa con nợ thành công!", "success");
+                loadDebtors();
+            };
+        }
+
+        function openAddModal() {
+            document.getElementById('input-name').value = '';
+            document.getElementById('input-amount').value = '';
+            document.getElementById('input-interest').value = '3.0';
+            document.getElementById('add-modal').classList.remove('hidden');
+            document.getElementById('add-modal').classList.add('flex');
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.remove('flex');
+            document.getElementById('add-modal').classList.add('hidden');
+        }
+
+        async function handleAddDebtor(e) {
+            e.preventDefault();
+            const name = document.getElementById('input-name').value.trim();
+            const principal = parseFloat(document.getElementById('input-amount').value);
+            const interestRate = parseFloat(document.getElementById('input-interest').value);
+
+            const newDebtor = { name, principal, interestRate, history: [] };
+            if (!db) await initDB();
+            const tx = db.transaction([STORE_NAME], 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.add(newDebtor);
+
+            tx.oncomplete = () => {
+                showToast("Thêm con nợ mới thành công!", "success");
+                closeAddModal();
+                loadDebtors();
+            };
+        }
+
+        function openPaymentModal(id) {
+            const debtor = debtorsCache.find(d => d.id === id);
+            if (!debtor) return;
+            document.getElementById('pay-debtor-id').value = debtor.id;
+            document.getElementById('pay-debtor-name').innerText = debtor.name.toUpperCase();
+            document.getElementById('pay-amount').value = '';
+            document.getElementById('pay-note').value = '';
+            document.getElementById('payment-modal').classList.remove('hidden');
+            document.getElementById('payment-modal').classList.add('flex');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.remove('flex');
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        async function handlePaymentSubmit(e) {
+            e.preventDefault();
+            const id = Number(document.getElementById('pay-debtor-id').value);
+            const type = document.getElementById('pay-type').value;
+            const amount = parseFloat(document.getElementById('pay-amount').value);
+            const note = document.getElementById('pay-note').value.trim() || 'Giao dịch mới';
+
+            const debtor = debtorsCache.find(d => d.id === id);
+            if (!debtor) return;
+
+            if (!debtor.history) debtor.history = [];
+            debtor.history.push({ type, amount, note, date: new Date().toISOString() });
+
+            if (type === 'principal') {
+                debtor.principal = Math.max(0, debtor.principal - amount);
+            } else if (type === 'add') {
+                debtor.principal += amount;
+            }
+
+            if (!db) await initDB();
+            const tx = db.transaction([STORE_NAME], 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.put(debtor);
+
+            tx.oncomplete = () => {
+                showToast("Giao dịch thành công!", "success");
+                closePaymentModal();
+                loadDebtors();
+            };
+        }
+
+        function setStatusFilter(status) {
+            currentStatusFilter = status;
+            ['all', 'active', 'settled'].forEach(s => {
+                const btn = document.getElementById(`filter-btn-${s}`);
+                if (s === status) {
+                    btn.className = "px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition shadow-md";
+                } else {
+                    btn.className = "px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900/80 text-slate-300 hover:bg-slate-800 border border-slate-700 transition";
+                }
+            });
+            renderDebtors();
+        }
+
+        function filterDebtors() {
+            renderDebtors();
+        }
+
+        function openCalcModal() {
+            document.getElementById('calc-p').value = '';
+            document.getElementById('calc-result').innerText = '0';
+            document.getElementById('calc-modal').classList.remove('hidden');
+            document.getElementById('calc-modal').classList.add('flex');
+        }
+
+        function closeCalcModal() {
+            document.getElementById('calc-modal').classList.remove('flex');
+            document.getElementById('calc-modal').classList.add('hidden');
+        }
+
+        function calculateInterestQuick() {
+            const p = parseFloat(document.getElementById('calc-p').value) || 0;
+            const r = parseFloat(document.getElementById('calc-r').value) || 0;
+            const m = parseFloat(document.getElementById('calc-m').value) || 0;
+            const res = p * (r / 100) * m;
+            document.getElementById('calc-result').innerText = res.toLocaleString(undefined, {maximumFractionDigits: 2});
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(debtorsCache, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `danh_sach_con_no_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            showToast("Đã xuất file sao lưu dữ liệu thành công!", "success");
+        }
+
+        function importDataJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    if (!Array.isArray(imported)) throw new Error("File không hợp lệ");
+                    
+                    if (!db) await initDB();
+                    const tx = db.transaction([STORE_NAME], 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    store.clear();
+                    imported.forEach(d => store.put(d));
+                    
+                    tx.oncomplete = () => {
+                        showToast("Khôi phục dữ liệu thành công!", "success");
+                        loadDebtors();
+                    };
+                } catch(err) {
+                    showToast("Lỗi định dạng file JSON!", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bg = type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white';
+            const icon = type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check';
+            
+            toast.className = `pointer-events-auto px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-bold transform transition-all duration-300 translate-y-4 opacity-0 ${bg}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        window.onload = async () => {
+            try {
+                await initDB();
+                await loadDebtors();
+            } catch (e) {
+                console.error(e);
+            }
+        };
+    </script>
+</body>
+</html>
